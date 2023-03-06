@@ -21,7 +21,7 @@ sudo apt update && sudo apt install packer
 # Kernel update
 ### Клонирование и запуск
 Для выполнения этого действия требуется установить приложением git:
-`git clone altyn-kenzhebaev@github.com:altyn-kenzhebaev/hw-1.git`
+`git clone https://github.com/altyn-kenzhebaev/hw-1.git`
 В текущей директории появится папка с именем репозитория. В данном случае manual_kernel_update. Ознакомимся с содержимым:
 ```
 cd hw-1
