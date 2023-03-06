@@ -1,11 +1,11 @@
 # Описываем Виртуальные машины
 MACHINES = {
   # Указываем имя ВМ "kernel update"
-  :"otus-hw1" => {
+  :"kernel-update" => {
               #Какой vm box будем использовать
-              :box_name => "altynkenzhebaev/centos8-kernel6",
+              :box_name => "centos/stream8",
               #Указываем box_version
-              :box_version => "2.0",
+              :box_version => "20210210.0",
               #Указываем количество ядер ВМ
               :cpus => 2,
               #Указываем количество ОЗУ в мегабайтах
