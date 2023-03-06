@@ -21,11 +21,11 @@ sudo apt update && sudo apt install packer
 # Kernel update
 ### Клонирование и запуск
 Для выполнения этого действия требуется установить приложением git:
-`git clone git@github.com:altyn-kenzhebaev/manual_kernel_update.git`
+`git clone altyn-kenzhebaev@github.com:altyn-kenzhebaev/hw-1.git`
 В текущей директории появится папка с именем репозитория. В данном случае manual_kernel_update. Ознакомимся с содержимым:
 ```
-cd manual_kernel_update
-ls -1
+cd hw-1
+ls -l
 README.md
 packer
 Vagrantfile
