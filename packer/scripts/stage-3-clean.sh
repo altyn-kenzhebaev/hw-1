@@ -11,6 +11,7 @@ curl -sL https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant
 chmod 0600 /home/vagrant/.ssh/authorized_keys
 chown -R vagrant:vagrant /home/vagrant/.ssh
 
+yum remove kernel-ml-devel kernel-ml-headers make gcc perl -y
 
 # Удаление временных файлов
 rm -rf /tmp/*

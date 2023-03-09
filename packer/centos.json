@@ -24,7 +24,7 @@
       "http_directory": "http",
       "iso_checksum": "b4bb35e2c074b4b9710419a9baa4283ce4a02f27d5b81bb8a714b576e5c2df7a",
       "iso_url": "http://mirror.linux-ia64.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20230209-boot.iso",
-      "name": "{{ user `image_name` }}",
+      "name": "centos-8",
       "output_directory": "builds",
       "shutdown_command": "echo 'vagrant' | sudo -S /sbin/halt -h -p",
       "shutdown_timeout": "1m",
@@ -64,10 +64,11 @@
       "execute_command": "echo 'vagrant' | {{ .Vars }} sudo -S -E bash '{{ .Path }}'",
       "expect_disconnect": true,
       "override": {        
-        "{{ user `image_name` }}": {
+        "centos-8": {
           "scripts": [
             "scripts/stage-1-kernel-update.sh",
-            "scripts/stage-2-clean.sh"
+            "scripts/stage-2-install-virtualbox-guest-additions.sh",
+            "scripts/stage-3-clean.sh"
           ]
         }
       },

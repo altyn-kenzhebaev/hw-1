@@ -16,7 +16,7 @@ MACHINES = {
 Vagrant.configure("2") do |config|
   MACHINES.each do |boxname, boxconfig|
     # Отключаем проброс общей папки в ВМ
-    config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder ".", "/vagrant", disabled: false
     # Применяем конфигруацию ВМ
     config.vm.define boxname do |box|
       box.vm.box = boxconfig[:box_name]
