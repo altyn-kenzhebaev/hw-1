@@ -1,9 +1,11 @@
 #!/bin/bash
 
+yum remove kernel-headers -y
+
 # Установка репозитория elrepo
 yum install -y https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm 
 # Установка нового ядра из репозитория elrepo-kernel
-yum --enablerepo elrepo-kernel install kernel-ml -y
+yum --enablerepo elrepo-kernel install kernel-ml kernel-ml-devel kernel-ml-headers gcc make perl -y
 
 # Обновление параметров GRUB
 grub2-mkconfig -o /boot/grub2/grub.cfg
