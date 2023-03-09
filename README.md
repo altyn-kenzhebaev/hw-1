@@ -104,7 +104,7 @@ uname -r
 ```
 "output": "centos-{{ user `artifact_version` }}-kernel-6-x86_64-Minimal.box"
 ```
-В секции provisioners указываем действия по обновлению, установку дополнительных пакетов для работы virtualbox-guest-additions, установку virtualbox-guest-additions, чиску образа от ненужных пкетов и временных файлов.  Настройка системы выполняется 3-мя скриптами, заданными в секции scripts.
+В секции provisioners указываем действия по обновлению ядра, установке дополнительных пакетов для virtualbox-guest-additions, установка virtualbox-guest-additions, чиска образа от ненужных пакетов и временных файлов.  Настройка системы выполняется 3-мя скриптами, заданными в секции scripts.
 ```
           "scripts": [
             "scripts/stage-1-kernel-update.sh",
