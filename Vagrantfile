@@ -1,15 +1,18 @@
+# -*- mode: ruby -*-
+# vim: set ft=ruby :
+
 # Описываем Виртуальные машины
 MACHINES = {
   # Указываем имя ВМ "kernel update"
   :"kernel-update" => {
               #Какой vm box будем использовать
-              :box_name => "centos/stream8",
+              :box_name => "altynkenzhebaev/centos8-kernel6",
               #Указываем box_version
-              :box_version => "20210210.0",
+              :box_version => "1.0",
               #Указываем количество ядер ВМ
-              :cpus => 2,
+              :cpus => 4,
               #Указываем количество ОЗУ в мегабайтах
-              :memory => 1024,
+              :memory => 4096,
             }
 }
 
@@ -17,6 +20,7 @@ Vagrant.configure("2") do |config|
   MACHINES.each do |boxname, boxconfig|
     # Отключаем проброс общей папки в ВМ
     config.vm.synced_folder ".", "/vagrant", disabled: false
+    config.disksize.size = '50GB'
     # Применяем конфигруацию ВМ
     config.vm.define boxname do |box|
       box.vm.box = boxconfig[:box_name]
@@ -26,6 +30,11 @@ Vagrant.configure("2") do |config|
         v.memory = boxconfig[:memory]
         v.cpus = boxconfig[:cpus]
       end
+      box.vm.provision "shell", reboot: true, inline: <<-SHELL
+	      echo -e 'Yes\n100%' | sudo parted ---pretend-input-tty /dev/sda resizepart 1 100%
+        xfs_growfs /dev/sda1
+	      /vagrant/kernel_update.sh
+      SHELL
     end
   end
 end

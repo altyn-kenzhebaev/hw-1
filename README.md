@@ -18,7 +18,7 @@ sudo apt update && sudo apt install packer
 
 ------------
 
-# Kernel update
+# Kernel update из исходников
 ### Клонирование и запуск
 Для выполнения этого действия требуется установить приложением git:
 `git clone https://github.com/altyn-kenzhebaev/hw-1.git`
@@ -35,35 +35,53 @@ Vagrantfile
 - packer -  директория со скриптами для `packer`'а
 - Vagrantfile - файл описывающий виртуальную инфраструктуру для `Vagrant`
 
-Запустим виртуальную машину и залогинимся:
-```bash
-$ vagrant up
-Bringing machine 'kernel-update' up with 'virtualbox' provider...
-==> kernel-update: Importing base box 'centos/stream8'...
-...
-==> kernel-update: Booting VM...
-...
-==> kernel-update: Setting hostname...
-$ vagrant ssh
-[vagrant@kernel-update ~]$ uname -r
-4.18.0-277.el8.x86_64
+### Разбор Vagrantfile
+`:box_name => "altynkenzhebaev/centos8-kernel6"` - будет развернута виртуальная машина (ВМ), из бокса, которыйя опубликовал на веб-портале - https://app.vagrantup.com/
+Для компиляции и установки ядра из исходников потребуетсянемного больше вычислительной мощности:
 ```
-Теперь приступим к обновлению ядра.
-### kernel update
-Подключаем репозиторий, откуда возьмем необходимую версию ядра:
+:cpus => 4,
+:memory => 4096,
 ```
-sudo yum install -y https://www.elrepo.org/elrepo-release-8.el8.elrepo.noarch.rpm 
+Также для компиляции ядра потребуется немного больше файлового место, для этого нужно увеличить диск на котором установлена ВМ.
+Для этого потребуется установка плагина - `vagrant plugin install vagrant-disksize`
+Увеличиваем размер диска в Vagrantfile:
 ```
-В репозитории есть две версии ядер:
-kernel-ml — свежие и стабильные ядра
-kernel-lt — стабильные ядра с длительной версией поддержки, более старые, чем версия ml.
+config.disksize.size = '50GB'
+```
+И увеличить размер логического тома и файловой системы на лету приписываем:
+```
+	      echo -e 'Yes\n100%' | sudo parted ---pretend-input-tty /dev/sda resizepart 1 100%
+        xfs_growfs /dev/sda1
+	      /vagrant/kernel_update.sh
+```
+где `/vagrant/kernel_update.sh` - скрипт сборки ядра из исходника.
+разберем скрипт.
 
-Установим последнее ядро из репозитория elrepo-kernel:
+### kernel update из исходников
+Устанавливаем необходимые пакеты для сборки ядра:
 ```
-sudo yum --enablerepo elrepo-kernel install kernel-ml -y
+yum install gcc make flex bison bc openssl-devel elfutils-devel python3 perl -y
 ```
-Параметр --enablerepo elrepo-kernel указывает что пакет ядра будет запрошен из репозитория elrepo-kernel.
-Уже на этом этапе можно перезагрузить нашу виртуальную машину и выбрать новое ядро при загрузке ОС.
+Качаем последние исходники, на текущий момент это 6.2.2 и распаковывем в /usr/src:
+```
+curl -o /root/linux-6.2.2.tar.xz https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.2.2.tar.xz
+tar -xf /root/linux-6.2.2.tar.xz -C /usr/src/
+```
+Переходим в распакованную папку, генерируем конфиг-файл:
+```
+cd /usr/src/linux-6.2.2/
+yes "" | make oldconfig
+```
+В генерированном конфиге отключаем некоторые опции, для чего и зачем автору этой статьи пока неясно :)
+```
+sed -i -e 's/CONFIG_MODULE_SIG_KEY\=\".*/CONFIG_MODULE_SIG_KEY\=\"\"/g' -e 's/CONFIG_SYSTEM_TRUSTED_KEYS\=\".*/CONFIG_SYSTEM_TRUSTED_KEYS\=\"\"/g' -e 's/^CONFIG_DEBUG_INFO_BTF\=y/\# CONFIG_DEBUG_INFO_BTF is not set/g' -e 's/^CONFIG_MODULE_SIG_ALL\=y/\# CONFIG_MODULE_SIG_ALL is not set/g' .config
+```
+Ну и собственно собираем и устанавливаем ядро:
+```
+make
+make modules_install
+make install
+```
 ### grub update
 После успешной установки нам необходимо сказать системе, что при загрузке нужно использовать новое ядро. В случае обновления ядра на рабочих серверах необходимо перезагрузиться с новым ядром, выбрав его при загрузке. И только при успешно прошедших загрузке нового ядра и тестах сервера переходить к загрузке с новым ядром по-умолчанию. В тестовой среде можно обойти данный этап и сразу назначить новое ядро по-умолчанию.
 Обновляем конфигурацию загрузчика:
@@ -74,15 +92,22 @@ sudo grub2-mkconfig -o /boot/grub2/grub.cfg
 ```
 sudo grub2-set-default 0
 ```
-Перезагружаем виртуальную машину:
+Далее ВМ перезагружаеся за счет опции в Vagrantfile:
 ```
-sudo reboot
+reboot: true
 ```
-После перезагрузки виртуальной машины (3-4 минуты, зависит от мощности хостовой машины) заходим в нее и выполняем:
-```
-uname -r
-```
-
+Запустим виртуальную машину (это займет около 2-3 часов) и залогинимся:
+```bash
+$ vagrant up
+Bringing machine 'kernel-update' up with 'virtualbox' provider...
+==> kernel-update: Importing base box 'centos/stream8'...
+...
+==> kernel-update: Booting VM...
+...
+==> kernel-update: Setting hostname...
+$ vagrant ssh
+[vagrant@kernel-update ~]$ uname -r
+6.2.2
 ------------
 
 # Packer
@@ -104,7 +129,7 @@ uname -r
 ```
 "output": "centos-{{ user `artifact_version` }}-kernel-6-x86_64-Minimal.box"
 ```
-В секции provisioners указываем действия по обновлению ядра, установке дополнительных пакетов для virtualbox-guest-additions, установка virtualbox-guest-additions, чиска образа от ненужных пакетов и временных файлов.  Настройка системы выполняется 3-мя скриптами, заданными в секции scripts.
+В секции provisioners указываем действия по обновлению, установку дополнительных пакетов для работы virtualbox-guest-additions, установку virtualbox-guest-additions, чиску образа от ненужных пкетов и временных файлов.  Настройка системы выполняется 3-мя скриптами, заданными в секции scripts.
 ```
           "scripts": [
             "scripts/stage-1-kernel-update.sh",
