@@ -31,9 +31,9 @@ Vagrant.configure("2") do |config|
         v.cpus = boxconfig[:cpus]
       end
       box.vm.provision "shell", reboot: true, inline: <<-SHELL
-	      echo -e 'Yes\n100%' | sudo parted ---pretend-input-tty /dev/sda resizepart 1 100%
+        echo -e 'Yes\n100%' | sudo parted ---pretend-input-tty /dev/sda resizepart 1 100%
         xfs_growfs /dev/sda1
-	      /vagrant/kernel_update.sh
+        /vagrant/kernel_update.sh
       SHELL
     end
   end
