@@ -108,6 +108,7 @@ Bringing machine 'kernel-update' up with 'virtualbox' provider...
 $ vagrant ssh
 [vagrant@kernel-update ~]$ uname -r
 6.2.2
+```
 ------------
 
 # Packer
